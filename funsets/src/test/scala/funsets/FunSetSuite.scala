@@ -77,6 +77,8 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val sPositiveNumbers = (x:Int) => x >= 0
+    val sBetween1and5 = (x:Int) => x > 1 && x<5
   }
 
   /**
@@ -86,7 +88,7 @@ class FunSetSuite extends FunSuite {
    * Once you finish your implementation of "singletonSet", exchange the
    * function "ignore" by "test".
    */
-  ignore("singletonSet(1) contains 1") {
+  test("singletonSet(1) contains 1") {
     
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -97,16 +99,149 @@ class FunSetSuite extends FunSuite {
        * The string argument of "assert" is a message that is printed in case
        * the test fails. This helps identifying which assertion failed.
        */
-      assert(contains(s1, 1), "Singleton")
+      assert(contains(s1, 1), true)
     }
   }
 
-  ignore("union contains all elements") {
+  test("union contains all elements with singletons") {
     new TestSets {
-      val s = union(s1, s2)
-      assert(contains(s, 1), "Union 1")
-      assert(contains(s, 2), "Union 2")
-      assert(!contains(s, 3), "Union 3")
+      val sUnionSingletons = union(s1, s2)
+      assert(contains(sUnionSingletons, 1), true)
+      assert(contains(sUnionSingletons, 2), true)
+      assert(!contains(sUnionSingletons, 3), true)
+    }
+  }
+  test("union contains all elements with singleton and range") {
+    new TestSets {
+      val sUnionSingletonRange = union(s1, sBetween1and5)
+      assert(contains(sUnionSingletonRange, 1), true)
+      assert(contains(sUnionSingletonRange, 2), true)
+      assert(contains(sUnionSingletonRange, 3), true)
+      assert(contains(sUnionSingletonRange, 4), true)
+      assert(!contains(sUnionSingletonRange, 5), true)
+    }
+  }
+  test("union contains all elements with ranges") {
+    new TestSets {
+      val sUnionRanges = union(sPositiveNumbers, sBetween1and5)
+      assert(contains(sUnionRanges, 1), true)
+      assert(contains(sUnionRanges, 2), true)
+      assert(contains(sUnionRanges, 3), true)
+      assert(contains(sUnionRanges, 4), true)
+      assert(contains(sUnionRanges, 5), true)
+    }
+  }
+
+  test("intersection contains no element") {
+    new TestSets {
+      val setNull = intersect(s1, s2)
+      assert(!contains(setNull, 1), true)
+    }
+  }
+  test("intersection contains singleton") {
+    new TestSets {
+      val set2 = intersect(s1, sPositiveNumbers)
+      assert(contains(set2, 2), true)
+      assert(!contains(set2, 3), true)
+    }
+  }
+  test("intersection contains all smaller range") {
+    new TestSets {
+      val setRange = intersect(sBetween1and5, sPositiveNumbers)
+      assert(!contains(setRange, 1), true)
+      assert(contains(setRange, 2), true)
+      assert(contains(setRange, 3), true)
+      assert(contains(setRange, 4), true)
+      assert(!contains(setRange, 5), true)
+    }
+  }
+
+  test("difference contains singleton") {
+    new TestSets {
+      val setSingleton = diff(s1, s2)
+      assert(contains(setSingleton, 1), true)
+      assert(!contains(setSingleton, 2), true)
+    }
+  }
+  test("difference contains no element") {
+    new TestSets {
+      val setNull = diff(s1, sPositiveNumbers)
+      assert(!contains(setNull, 0), true)
+      assert(!contains(setNull, 1), true)
+      assert(!contains(setNull, 2), true)
+    }
+  }
+  test("difference contains all range but one") {
+    new TestSets {
+      val setRangeButOne = diff(sPositiveNumbers, s1)
+      assert(contains(setRangeButOne, 0), true)
+      assert(!contains(setRangeButOne, 1), true)
+      assert(contains(setRangeButOne, 2), true)
+    }
+  }
+  test("difference contains all range except umbers in small range") {
+    new TestSets {
+      val setRange = diff(sPositiveNumbers, sBetween1and5)
+      assert(contains(setRange, 0), true)
+      assert(contains(setRange, 1), true)
+      assert(!contains(setRange, 2), true)
+      assert(!contains(setRange, 3), true)
+      assert(!contains(setRange, 4), true)
+      assert(contains(setRange, 5), true)
+    }
+  }
+
+  test("filter odd numbers from range") {
+    new TestSets {
+      val setFilterOddNumbers = filter(sPositiveNumbers, (x: Int) => x % 2 == 0)
+      assert(contains(setFilterOddNumbers, 0), true)
+      assert(!contains(setFilterOddNumbers, 1), true)
+      assert(contains(setFilterOddNumbers, 2), true)
+      assert(!contains(setFilterOddNumbers, 3), true)
+      assert(contains(setFilterOddNumbers, 4), true)
+    }
+  }
+
+  test("forall in singleton") {
+    new TestSets {
+      assert(forall(s1, (x: Int) => x % 2 != 0), true)
+      assert(!forall(s2, (x: Int) => x % 2 != 0), true)
+    }
+  }
+  test("forall in range") {
+    new TestSets {
+      assert(forall(sBetween1and5, (x: Int) => x <10), true)
+      assert(!forall(sPositiveNumbers, (x: Int) => x <10), true)
+    }
+  }
+
+  test("exists in singleton") {
+    new TestSets {
+      assert(exists(s1, (x: Int) => x % 2 != 0), true)
+      assert(!exists(s2, (x: Int) => x % 2 != 0), true)
+    }
+  }
+  test("exists in range ") {
+    new TestSets {
+      assert(exists(sBetween1and5, (x: Int) => x <10), true)
+      assert(!exists(sBetween1and5, (x: Int) => x >10), true)
+    }
+  }
+
+  test("map singleton") {
+    new TestSets {
+      assert(contains(map(s1, (x: Int) => x+1), 2), true)
+      assert(!contains(map(s1, (x: Int) => x+1), 1), true)
+    }
+  }
+  test("map range") {
+    new TestSets {
+      assert(contains(map(sBetween1and5, (x: Int) => -x), -2), true)
+      assert(contains(map(sBetween1and5, (x: Int) => -x), -3), true)
+      assert(contains(map(sBetween1and5, (x: Int) => -x), -4), true)
+      assert(!contains(map(sBetween1and5, (x: Int) => -x), 2), true)
+      assert(!contains(map(sBetween1and5, (x: Int) => -x), 3), true)
+      assert(!contains(map(sBetween1and5, (x: Int) => -x), 4), true)
     }
   }
 }
